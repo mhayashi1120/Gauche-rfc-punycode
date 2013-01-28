@@ -1,0 +1,18 @@
+;;;
+;;; net_punycodelib.stub
+;;;
+
+"
+#include \"net_punycode.h\"
+"
+
+;; The following entry is a dummy one.
+;; Replace it for your definitions.
+
+(define-cproc test-net_punycode () ::<const-cstring>
+  (result "net_punycode is working"))
+
+
+;; Local variables:
+;; mode: scheme
+;; end:
