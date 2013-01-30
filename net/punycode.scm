@@ -1,7 +1,41 @@
-;;; RFC 3492 Punycode: A Bootstring encoding of Unicode for IDNA
-;;; http://tools.ietf.org/html/rfc3492
+;;;
+;;; punycode.scm - A Bootstring encoding of Unicode for IDNA
+;;;
+;;;   Copyright (c) 2013 Masahiro Hayashi <mhayashi1120@gmail.com>
+;;;
+;;;   Redistribution and use in source and binary forms, with or without
+;;;   modification, are permitted provided that the following conditions
+;;;   are met:
+;;;
+;;;   1. Redistributions of source code must retain the above copyright
+;;;      notice, this list of conditions and the following disclaimer.
+;;;
+;;;   2. Redistributions in binary form must reproduce the above copyright
+;;;      notice, this list of conditions and the following disclaimer in the
+;;;      documentation and/or other materials provided with the distribution.
+;;;
+;;;   3. Neither the name of the authors nor the names of its contributors
+;;;      may be used to endorse or promote products derived from this
+;;;      software without specific prior written permission.
+;;;
+;;;   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+;;;   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+;;;   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+;;;   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+;;;   OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+;;;   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+;;;   TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+;;;   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+;;;   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+;;;   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+;;;   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+;;;
+
+;; Punycode encoding/decoding function
+;; RFC 3492 <http://www.rfc-editor.org/rfc/rfc3492.txt>
 
 (define-module net.punycode
+  (use srfi-43)
   (use srfi-1)
   (use gauche.uvector)
   (use text.unicode)
@@ -13,12 +47,7 @@
 
 (select-module net.punycode)
 
-(define-constant punycode-chars
-  '(#\a #\b #\c #\d #\e #\f #\g #\h #\i #\j #\k #\l #\m
-    #\n #\o #\p #\q #\r #\s #\t #\u #\v #\w #\x #\y #\z
-    #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9))
-
-(define-constant punycode-base (length punycode-chars))
+(define-constant punycode-base 36)
 (define-constant punycode-tmin 1)
 (define-constant punycode-tmax 26)
 (define-constant punycode-damp 700)
@@ -26,6 +55,11 @@
 (define-constant punycode-initial-bias 72)
 (define-constant punycode-initial-n 128)
 (define-constant punycode-delimiter #\-)
+
+(define-constant punycode-chars
+  #(#\a #\b #\c #\d #\e #\f #\g #\h #\i #\j #\k #\l #\m
+    #\n #\o #\p #\q #\r #\s #\t #\u #\v #\w #\x #\y #\z
+    #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9))
 
 (define (punycode-encode-string string)
   (if (#/^[\x00-\x7f]*$/ string)
@@ -235,11 +269,10 @@
 
 (define (char->num c)
   (let1 c (char-downcase c)
-    (list-index (^x (eq? x c)) punycode-chars)))
+    (vector-index (^x (eq? x c)) punycode-chars)))
 
 (define (num->char n)
-  ;;TODO chars table to vector?
-  (list-ref punycode-chars n))
+  (vector-ref punycode-chars n))
 
 (define (1+ x) (+ x 1))
 (define (1- x) (- x 1))
