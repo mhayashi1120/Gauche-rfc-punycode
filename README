@@ -1,6 +1,22 @@
 [Requirements]
 
+[Optionals]
+
 * idnkit
 
 http://www.nic.ad.jp/ja/idn/idnkit/download/sources/idnkit-1.0-src.tar.gz
 
+
+
+[Function] punycode-encode-string/ punycode-decode-string
+
+Encode/Decode input string as punycode.
+If contains invalid code in punycode, then raise error.
+
+[Function] punycode-encode / punycode-decode
+
+Same as punycode-decode-string/punycode-encode-string but accept input port.
+
+[Function] punycode-encode-domain / punycode-decode-domain
+
+Encode/Decode string punycode as domain name.
