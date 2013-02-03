@@ -1,10 +1,10 @@
 dnl
-dnl Configuring Gauche-net-punycode
+dnl Configuring Gauche-rfc-punycode
 dnl  process this file with autoconf to generate 'configure'.
 dnl
 
 AC_PREREQ(2.54)
-AC_INIT(Gauche-net-punycode, 1.0, shiro@acm.org)
+AC_INIT(Gauche-rfc-punycode, 0.8, mhayashi1120@gmail.com)
 dnl If you want to use the system name (OS, architecture, etc) in the
 dnl configure, uncomment the following line.  In such a case, you need
 dnl to copy config.guess and config.sub from automake distribution.

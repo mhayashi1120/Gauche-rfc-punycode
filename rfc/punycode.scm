@@ -32,9 +32,14 @@
 ;;;
 
 ;; Punycode encoding/decoding function
-;; RFC 3492 <http://www.rfc-editor.org/rfc/rfc3492.txt>
+;; TODO: RFC 3490 http://www.rfc-editor.org/rfc/rfc3490.txt
+;; RFC 3492 http://www.rfc-editor.org/rfc/rfc3492.txt
 
-(define-module net.punycode
+;; TODO: 6.4 Overflow handling
+
+
+(define-module rfc.punycode
+  (use srfi-14)
   (use srfi-43)
   (use srfi-1)
   (use gauche.uvector)
@@ -43,10 +48,11 @@
   (export
    punycode-decode punycode-encode
    punycode-decode-string punycode-encode-string
-   punycode-decode-domain punycode-encode-domain))
+   idna-encode-string idna-decode-string))
 
-(select-module net.punycode)
+(select-module rfc.punycode)
 
+;; Punycode: 5. Parameter values for Punycode
 (define-constant punycode-base 36)
 (define-constant punycode-tmin 1)
 (define-constant punycode-tmax 26)
@@ -61,47 +67,77 @@
     #\n #\o #\p #\q #\r #\s #\t #\u #\v #\w #\x #\y #\z
     #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9))
 
+;; IDNA 3.1.1 Requirements
+(define-constant idna-label-separator
+  (list->char-set
+   (map ucs->char '(#x2e #x3002 #xFF0E #xFF61))))
+
 (define (punycode-encode-string string)
-  (if (#/^[\x00-\x7f]*$/ string)
-    string
-    (let* ([points (->codepoints string)]
-           [oport (open-output-string)])
-      (display "xn--" oport)
-      (receive (ascii non-ascii) (partition (^x (< x 128)) points)
-        (encode1 oport points ascii non-ascii)
-        (get-output-string oport)))))
+  (with-output-to-string
+    (^()
+      (encode0 (open-input-string string)))))
 
 (define (punycode-decode-string string)
-  (if-let1 m (#/^xn--(?:([\x00-\x7f]+)-)?/ string)
-    (let* ([ascii (or (m 1) "")]
-           [punybody (m 'after)]
-           [iport (open-input-string punybody)])
-      (decode1 ascii iport))
-    string))
+  (with-output-to-string
+    (^()
+      (decode0 (open-input-string string)))))
 
-(define (punycode-encode iport)
-  (punycode-encode-string (get-remaining-input-string iport)))
+(define (punycode-encode)
+  (encode0 (current-input-port)))
 
-(define (punycode-decode iport)
-  (punycode-decode-string (get-remaining-input-string iport)))
+(define (punycode-decode)
+  (decode0 (current-input-port)))
 
-(define (punycode-encode-domain domain)
+;; IDNA 3.1 Requirements
+(define (idna-encode-string string)
+
+  (define (encode x)
+    (if (#/^[\x00-\x7f]*$/ x)
+      x
+      (with-output-to-string
+        (^ ()
+          (display "xn--")
+          (encode0 (open-input-string x))))))
+
   (string-join
-   (map punycode-encode-string
-        (string-split domain #[.]))
+   (map encode
+        ;; it MUST contain only ASCII characters
+        (string-split string idna-label-separator))
    "."))
 
-(define (punycode-decode-domain domain)
+;; IDNA 3.1 Requirements
+(define (idna-decode-string string)
+  (define (decode x)
+    (if-let1 m (#/^xn--/i x)
+      (with-output-to-string
+        (^ ()
+          (decode0 (open-input-string (m 'after)))))
+      x))
+
   (string-join
-   (map punycode-decode-string
-        (string-split domain #[.]))
+   (map decode
+        (string-split string "."))
    "."))
+
 
 ;;;
 ;;; Encoder/Decoder
 ;;;
 
+(define (decode0 iport)
+  (receive (ascii non-ascii) (split-delimiter iport)
+    (let1 iport (open-input-string non-ascii)
+      (decode1 ascii iport))))
+
+(define (encode0 iport)
+  (let1 points (->codepoints iport)
+    (receive (ascii non-ascii) (partition (^x (< x 128)) points)
+      (encode1 points ascii non-ascii))))
+
+;; Punycode: 6.2 Decoding procedure
 (define (decode1 ascii iport)
+
+  (define *buffer* (unicode-chars ascii))
 
   (define (read-a-char i bias)
     (let loop ([weight 1]
@@ -123,9 +159,8 @@
                     (+ k punycode-base)
                     acc)]))))))
 
-  (define *buffer* (unicode-chars ascii))
-
   (define (output-char i c)
+    ;;TODO hmm..
     (set! *buffer* (insert-at *buffer* i c)))
 
   (let loop ([n punycode-initial-n]         ; start from non-ascii code
@@ -137,21 +172,22 @@
              ;;   (which will be the last delimiter)
              )
 
-    (let* ([old-i i]
-           [i (read-a-char i bias)]
-           [outend (1+ (length *buffer*))]
-           [bias (punycode-adapt (- i old-i) outend (zero? old-i))]
-           [n (+ n (div i outend))]
-           [c (ucs->char n)]
-           [i (mod i outend)])
-      (output-char i c)
-      (cond
-       [(eof-object? (peek-char iport))
-        (apply string *buffer*)]
-       [else
-        (loop n (1+ i) bias)]))))
+    (cond
+     [(eof-object? (peek-char iport))
+      (display (apply string *buffer*))]
+     [else
+      (let* ([old-i i]
+             [i (read-a-char i bias)]
+             [outend (1+ (length *buffer*))]
+             [bias (punycode-adapt (- i old-i) outend (zero? old-i))]
+             [n (+ n (div i outend))]
+             [c (ucs->char n)]
+             [i (mod i outend)])
+        (output-char i c)
+        (loop n (1+ i) bias))])))
 
-(define (encode1 oport codepoints ascii non-ascii)
+;; Punycode: 6.3 Encoding procedure
+(define (encode1 codepoints ascii non-ascii)
 
   ;; write a char
   (define (write-a-char delta bias)
@@ -211,12 +247,13 @@
                         (+ h (length indexes)) next-delta))))))
 
   (define (output x)
-    (display x oport))
+    (display x))
 
   (when (pair? ascii)
     (dolist (x (unicode-chars ascii))
       (output x))
-    (output punycode-delimiter))
+    (when (pair? non-ascii)
+      (output punycode-delimiter)))
 
   (let* ([ordered (sort! non-ascii <)]
          [codepoints (delete-duplicates! ordered)])
@@ -232,6 +269,7 @@
    [else
     (- k bias)]))
 
+;; Punycode: 6.1 Bias adaptation function
 (define (punycode-adapt delta numpoints firsttime)
   (let* ([delta (quotient delta (if firsttime punycode-damp 2))]
          [delta (+ delta (quotient delta numpoints))]
@@ -256,6 +294,37 @@
    [else
     (cons (car lis) (insert-at (cdr lis) (1- i) n))]))
 
+(define (split-delimiter iport)
+
+  (define (splitter prev)
+    (let1 c (read-char iport)
+      (cond
+       [(eof-object? c)
+        (values #f '())]
+       [else
+        (unless (char-set-contains? char-set:ascii c)
+          (error "Invalid punycode (Not a ascii char)" c))
+        (receive (prev2 rest2) (splitter (cons c prev))
+          (cond
+           [(eq? c punycode-delimiter)
+            (values (cond
+                     [prev2 (cons c prev2)]
+                     ;; empty encoded body e.g. "-> $1.00 <-"
+                     ;; this means input is ascii text.
+                     [(null? rest2) (cons c '())]
+                     [else '()])
+                    rest2)]
+           [(not prev2)
+            (if (char->num c)
+              (values #f (cons c rest2))
+              (values (cons c rest2) '()))]
+           [else
+            (values (cons c prev2) rest2)]))])))
+
+  (receive (before after) (splitter '())
+    (values (apply string (or before '()))
+            (apply string after))))
+
 (define (unicode-chars s)
   (map (^x
         (cond
@@ -264,8 +333,14 @@
          [else (error "Not supported" x)]))
        s))
 
-(define (->codepoints s)
-  (map char->ucs s))
+(define (->codepoints iport)
+  (let loop ([res '()])
+    (let1 c (read-char iport)
+      (cond
+       [(eof-object? c)
+        (reverse! res)]
+       [else
+        (loop (cons (char->ucs c) res))]))))
 
 (define (char->num c)
   (let1 c (char-downcase c)
