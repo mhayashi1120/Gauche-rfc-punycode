@@ -48,7 +48,7 @@
   (export
    punycode-decode punycode-encode
    punycode-decode-string punycode-encode-string
-   idna-encode-string idna-decode-string))
+   punycode-encode-idna punycode-decode-idna))
 
 (select-module rfc.punycode)
 
@@ -89,7 +89,7 @@
   (decode0 (current-input-port)))
 
 ;; IDNA 3.1 Requirements
-(define (idna-encode-string string)
+(define (punycode-encode-idna string)
 
   (define (encode x)
     (if (#/^[\x00-\x7f]*$/ x)
@@ -106,7 +106,7 @@
    "."))
 
 ;; IDNA 3.1 Requirements
-(define (idna-decode-string string)
+(define (punycode-decode-idna string)
   (define (decode x)
     (if-let1 m (#/^xn--/i x)
       (with-output-to-string
@@ -137,6 +137,7 @@
 ;; Punycode: 6.2 Decoding procedure
 (define (decode1 ascii iport)
 
+  ;; initialize by ascii char part
   (define *buffer* (unicode-chars ascii))
 
   (define (read-a-char i bias)
@@ -160,7 +161,6 @@
                     acc)]))))))
 
   (define (output-char i c)
-    ;;TODO hmm..
     (set! *buffer* (insert-at *buffer* i c)))
 
   (let loop ([n punycode-initial-n]         ; start from non-ascii code
