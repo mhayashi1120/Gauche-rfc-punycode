@@ -163,9 +163,9 @@
   (define (output-char i c)
     (set! *buffer* (insert-at *buffer* i c)))
 
-  (let loop ([n punycode-initial-n]         ; start from non-ascii code
-             [i 0]
-             [bias punycode-initial-bias]
+  (let loop ([old-n punycode-initial-n]         ; start from non-ascii code
+             [old-i 0]
+             [old-bias punycode-initial-bias]
              ;; consume all code points before the last delimiter (if there is one)
              ;;   and copy them to output, fail on any non-basic code point
              ;; if more than zero code points were consumed then consume one more
@@ -176,15 +176,14 @@
      [(eof-object? (peek-char iport))
       (display (apply string *buffer*))]
      [else
-      (let* ([old-i i]
-             [i (read-a-char i bias)]
+      (let* ([i (read-a-char old-i old-bias)]
              [outend (1+ (length *buffer*))]
              [bias (punycode-adapt (- i old-i) outend (zero? old-i))]
-             [n (+ n (div i outend))]
+             [n (+ old-n (div i outend))]
              [c (ucs->char n)]
-             [i (mod i outend)])
-        (output-char i c)
-        (loop n (1+ i) bias))])))
+             [next-i (mod i outend)])
+        (output-char next-i c)
+        (loop n (1+ next-i) bias))])))
 
 ;; Punycode: 6.3 Encoding procedure
 (define (encode1 codepoints ascii non-ascii)
@@ -222,7 +221,7 @@
                                    (= old-n punycode-initial-n))
           (write-char-group m bias m (1+ h) 0 (cdr indexes))))]))
 
-  (define (indexes-of x)
+  (define (delta&indexes x)
     (let loop ([i 0]
                [lis codepoints]
                [res '()]
@@ -241,7 +240,7 @@
     (when (pair? codepoints)
       ;; write char and index of inserting
       (let1 m (car codepoints)
-        (receive (next-delta indexes) (indexes-of m)
+        (receive (next-delta indexes) (delta&indexes m)
           (let1 bias (write-char-group m bias n (1+ h) delta indexes)
             (write-body (1+ m) bias (cdr codepoints)
                         (+ h (length indexes)) next-delta))))))
