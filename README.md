@@ -3,6 +3,13 @@ Gauche-rfc-punycode
 
 Encode/Decode punycode for Gauche
 
+## Install
+
+    ./DIST gen
+    ./configure
+    make check
+    sudo make install
+
 
 ## Function
 
