@@ -1,0 +1,8 @@
+DIST_EXCLUDE_X
+test.log
+VERSION
+config.log
+config.status
+configure
+Makefile
+*.gpd
