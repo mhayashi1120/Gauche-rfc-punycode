@@ -22,8 +22,6 @@
     (test* #`"Encoding ,|name|" punycode (punycode-encode-string orig) string-ci=?)
     (test* #`"Decoding ,|name|" orig (punycode-decode-string punycode) string-ci=?)))
 
-(test-start "rfc.punycode")
-
 ;;; RFC3492 7.1
 
 ;; decoding test examples
