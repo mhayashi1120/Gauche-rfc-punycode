@@ -48,7 +48,7 @@
   (export
    punycode-decode punycode-encode
    punycode-decode-string punycode-encode-string
-   punycode-encode-idna punycode-decode-idna))
+   idna-encode-string idna-decode-string))
 
 (select-module rfc.punycode)
 
@@ -89,7 +89,7 @@
   (decode0 (current-input-port)))
 
 ;; IDNA 3.1 Requirements
-(define (punycode-encode-idna string)
+(define (idna-encode-string string)
 
   (define (encode x)
     (if (#/^[\x00-\x7f]*$/ x)
@@ -106,7 +106,7 @@
    "."))
 
 ;; IDNA 3.1 Requirements
-(define (punycode-decode-idna string)
+(define (idna-decode-string string)
   (define (decode x)
     (if-let1 m (#/^xn--/i x)
       (with-output-to-string
@@ -137,7 +137,6 @@
 ;; Punycode: 6.2 Decoding procedure
 (define (decode1 ascii iport)
 
-  ;; initialize by ascii char part
   (define *buffer* (unicode-chars ascii))
 
   (define (read-a-char i bias)
@@ -163,9 +162,9 @@
   (define (output-char i c)
     (set! *buffer* (insert-at *buffer* i c)))
 
-  (let loop ([old-n punycode-initial-n]         ; start from non-ascii code
-             [old-i 0]
-             [old-bias punycode-initial-bias]
+  (let loop ([n punycode-initial-n]         ; start from non-ascii code
+             [i 0]
+             [bias punycode-initial-bias]
              ;; consume all code points before the last delimiter (if there is one)
              ;;   and copy them to output, fail on any non-basic code point
              ;; if more than zero code points were consumed then consume one more
@@ -176,14 +175,15 @@
      [(eof-object? (peek-char iport))
       (display (apply string *buffer*))]
      [else
-      (let* ([i (read-a-char old-i old-bias)]
+      (let* ([old-i i]
+             [i (read-a-char i bias)]
              [outend (1+ (length *buffer*))]
              [bias (punycode-adapt (- i old-i) outend (zero? old-i))]
-             [n (+ old-n (div i outend))]
+             [n (+ n (div i outend))]
              [c (ucs->char n)]
-             [next-i (mod i outend)])
-        (output-char next-i c)
-        (loop n (1+ next-i) bias))])))
+             [i (mod i outend)])
+        (output-char i c)
+        (loop n (1+ i) bias))])))
 
 ;; Punycode: 6.3 Encoding procedure
 (define (encode1 codepoints ascii non-ascii)
@@ -221,7 +221,7 @@
                                    (= old-n punycode-initial-n))
           (write-char-group m bias m (1+ h) 0 (cdr indexes))))]))
 
-  (define (delta&indexes x)
+  (define (indexes-of x)
     (let loop ([i 0]
                [lis codepoints]
                [res '()]
@@ -240,7 +240,7 @@
     (when (pair? codepoints)
       ;; write char and index of inserting
       (let1 m (car codepoints)
-        (receive (next-delta indexes) (delta&indexes m)
+        (receive (next-delta indexes) (indexes-of m)
           (let1 bias (write-char-group m bias n (1+ h) delta indexes)
             (write-body (1+ m) bias (cdr codepoints)
                         (+ h (length indexes)) next-delta))))))

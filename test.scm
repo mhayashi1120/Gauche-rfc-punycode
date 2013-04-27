@@ -163,27 +163,27 @@
 
 (test* "Encoding Alphabet domain"
        "example.com"
-       (punycode-encode-idna "example.com"))
+       (idna-decode-string "example.com"))
 
 (test* "Decoding Alphabet domain"
        "example.com"
-       (punycode-decode-idna "example.com"))
+       (idna-decode-string "example.com"))
 
 (test* "Encoding 日本語ドメイン"
        "japan.xn--wgv71a119e.jp"
-       (punycode-encode-idna "japan.日本語。jp"))
+       (idna-encode-string "japan.日本語。jp"))
 
 (test* "Decoding 日本語ドメイン"
        "japan.日本語.jp"
-       (punycode-decode-idna "japan.xn--wgv71a119e.jp"))
+       (idna-decode-string "japan.xn--wgv71a119e.jp"))
 
 (test* "Encoding 日本語ドメイン2"
        "yo.xn--1lqs71d.xn--wgv71a"
-       (punycode-encode-idna "yo。東京｡日本"))
+       (idna-encode-string "yo。東京｡日本"))
 
 (test* "Decoding 日本語ドメイン2"
        "yo.東京.日本"
-       (punycode-decode-idna "yo.xn--1lqs71d.xn--wgv71a"))
+       (idna-decode-string "yo.xn--1lqs71d.xn--wgv71a"))
 
 (test-end)
 
