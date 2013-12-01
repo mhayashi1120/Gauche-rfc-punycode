@@ -32,7 +32,7 @@
 ;;;
 
 ;; Punycode encoding/decoding function
-;; TODO: RFC 3490 http://www.rfc-editor.org/rfc/rfc3490.txt
+;; RFC 3490 http://www.rfc-editor.org/rfc/rfc3490.txt
 ;; RFC 3492 http://www.rfc-editor.org/rfc/rfc3492.txt
 
 ;; TODO: 6.4 Overflow handling
