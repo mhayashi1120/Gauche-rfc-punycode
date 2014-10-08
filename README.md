@@ -22,6 +22,6 @@ If contains invalid code in punycode, then raise error.
 
 Same as punycode-decode-string/punycode-encode-string but accept input port.
 
-### punycode-encode-idna / punycode-decode-idna
+### idna-encode-string / idna-decode-string
 
 Encode/Decode string punycode as domain name.
