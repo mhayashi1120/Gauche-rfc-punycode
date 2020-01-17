@@ -4,12 +4,12 @@
 
 (define-gauche-package "Gauche-rfc-punycode"
   ;; 
-  :version "1.0"
+  :version "0.9.0"
 
   ;; Description of the package.  The first line is used as a short
   ;; summary.
   :description "Manipulate Punycode. \n\
-                "
+                Encode/Decode punycode."
 
   ;; List of dependencies.
   ;; Example:

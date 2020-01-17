@@ -1,7 +1,7 @@
 ;;;
 ;;; punycode.scm - A Bootstring encoding of Unicode for IDNA
 ;;;
-;;;   Copyright (c) 2013 Masahiro Hayashi <mhayashi1120@gmail.com>
+;;;   Copyright (c) 2013-2014,2020 Masahiro Hayashi <mhayashi1120@gmail.com>
 ;;;
 ;;;   Redistribution and use in source and binary forms, with or without
 ;;;   modification, are permitted provided that the following conditions
