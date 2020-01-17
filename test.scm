@@ -185,7 +185,9 @@
        "yo.東京.日本"
        (idna-decode-string "yo.xn--1lqs71d.xn--wgv71a"))
 
-(test-end)
+;; If you don't want `gosh' to exit with nonzero status even if
+;; the test fails, pass #f to :exit-on-failure.
+(test-end :exit-on-failure #t)
 
 
 
