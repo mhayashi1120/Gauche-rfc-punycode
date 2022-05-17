@@ -15,7 +15,7 @@
   ;; Example:
   ;;     :require (("Gauche" (>= "0.9.5"))  ; requires Gauche 0.9.5 or later
   ;;               ("Gauche-gl" "0.6"))     ; and Gauche-gl 0.6
-  :require ()
+  :require (("Gauche" (>= "0.9.11-p1")))
 
   ;; List of providing modules
   ;; NB: This will be recognized >= Gauche 0.9.7.
