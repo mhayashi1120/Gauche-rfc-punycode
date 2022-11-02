@@ -19,8 +19,8 @@
 
 (define (rfctest name punycode codepoints)
   (let* ([orig (code-to-string codepoints)])
-    (test* #`"Encoding ,|name|" punycode (punycode-encode-string orig) string-ci=?)
-    (test* #`"Decoding ,|name|" orig (punycode-decode-string punycode) string-ci=?)))
+    (test* #"Encoding ~|name|" punycode (punycode-encode-string orig) string-ci=?)
+    (test* #"Decoding ~|name|" orig (punycode-decode-string punycode) string-ci=?)))
 
 ;;; RFC3492 7.1
 
