@@ -3,6 +3,5 @@ test.log
 VERSION
 config.log
 config.status
-configure
 Makefile
 *.gpd
