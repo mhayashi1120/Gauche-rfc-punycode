@@ -309,12 +309,14 @@
 
 ;; ## <string> -> <string>
 (define (punycode-encode-string string)
+  (assume-type string <string>)
   (with-output-to-string
     (^()
       (encode0 (open-input-string string)))))
 
 ;; ## <string> -> <string>
 (define (punycode-decode-string string)
+  (assume-type string <string>)
   (with-output-to-string
     (^()
       (decode0 (open-input-string string)))))
@@ -330,7 +332,6 @@
 ;; ## IDNA 3.1 Requirements
 ;; <string> -> <string>
 (define (idna-encode-string string)
-
   (define (encode x)
     (if (#/^[\x00-\x7f]*$/ x)
       x
@@ -339,11 +340,12 @@
           (display "xn--")
           (encode0 (open-input-string x))))))
 
-  (string-join
-   (map encode
-        ;; it MUST contain only ASCII characters
-        (string-split string idna-label-separator))
-   "."))
+  (assume-type string <string>)
+
+  ($ (cut string-join <> ".")
+     $ map encode
+     ;; it MUST contain only ASCII characters
+     $ string-split string idna-label-separator))
 
 ;; ## IDNA 3.1 Requirements
 ;; <string> -> <string>
@@ -355,7 +357,8 @@
           (decode0 (open-input-string (m 'after)))))
       x))
 
-  (string-join
-   (map decode
-        (string-split string "."))
-   "."))
+  (assume-type string <string>)
+
+  ($ (cut string-join <> ".")
+     $ map decode
+     $ string-split string "."))
