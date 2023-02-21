@@ -185,6 +185,9 @@
        "yo.東京.日本"
        (idna-decode-string "yo.xn--1lqs71d.xn--wgv71a"))
 
-;; If you don't want `gosh' to exit with nonzero status even if
-;; the test fails, pass #f to :exit-on-failure.
+(test* "Checktype1" (test-error) (idna-decode-string 1))
+(test* "Checktype2" (test-error) (idna-encode-string 2))
+(test* "Checktype3" (test-error) (punycode-decode-string 1))
+(test* "Checktype4" (test-error) (punycode-encode-string 1))
+
 (test-end :exit-on-failure #t)
