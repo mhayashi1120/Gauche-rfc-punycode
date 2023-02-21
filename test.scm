@@ -9,9 +9,9 @@
 (test-module 'rfc.punycode)
 
 (define (code-to-string codes)
-  (apply string 
-         (map 
-          (^c 
+  (apply string
+         (map
+          (^c
            (if-let1 m (#/^u\+([0-9a-f]+)/i (x->string c))
              (integer->char (string->number (m 1) 16))
              (error "Not a valid codepoint" c)))
@@ -188,7 +188,3 @@
 ;; If you don't want `gosh' to exit with nonzero status even if
 ;; the test fails, pass #f to :exit-on-failure.
 (test-end :exit-on-failure #t)
-
-
-
-
