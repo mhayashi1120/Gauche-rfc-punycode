@@ -1,7 +1,7 @@
 ;;;
 ;;; punycode.scm - A Bootstring encoding of Unicode for IDNA
 ;;;
-;;;   Copyright (c) 2013-2014,2020 Masahiro Hayashi <mhayashi1120@gmail.com>
+;;;   Copyright (c) 2013-2014,2020,2023 Masahiro Hayashi <mhayashi1120@gmail.com>
 ;;;
 ;;;   Redistribution and use in source and binary forms, with or without
 ;;;   modification, are permitted provided that the following conditions
@@ -71,54 +71,6 @@
 (define-constant idna-label-separator
   (list->char-set
    (map ucs->char '(#x2e #x3002 #xFF0E #xFF61))))
-
-(define (punycode-encode-string string)
-  (with-output-to-string
-    (^()
-      (encode0 (open-input-string string)))))
-
-(define (punycode-decode-string string)
-  (with-output-to-string
-    (^()
-      (decode0 (open-input-string string)))))
-
-(define (punycode-encode)
-  (encode0 (current-input-port)))
-
-(define (punycode-decode)
-  (decode0 (current-input-port)))
-
-;; IDNA 3.1 Requirements
-(define (idna-encode-string string)
-
-  (define (encode x)
-    (if (#/^[\x00-\x7f]*$/ x)
-      x
-      (with-output-to-string
-        (^ ()
-          (display "xn--")
-          (encode0 (open-input-string x))))))
-
-  (string-join
-   (map encode
-        ;; it MUST contain only ASCII characters
-        (string-split string idna-label-separator))
-   "."))
-
-;; IDNA 3.1 Requirements
-(define (idna-decode-string string)
-  (define (decode x)
-    (if-let1 m (#/^xn--/i x)
-      (with-output-to-string
-        (^ ()
-          (decode0 (open-input-string (m 'after)))))
-      x))
-
-  (string-join
-   (map decode
-        (string-split string "."))
-   "."))
-
 
 ;;;
 ;;; Encoder/Decoder
@@ -350,3 +302,60 @@
 
 (define (1+ x) (+ x 1))
 (define (1- x) (- x 1))
+
+;;;
+;;; # API
+;;;
+
+;; ## <string> -> <string>
+(define (punycode-encode-string string)
+  (with-output-to-string
+    (^()
+      (encode0 (open-input-string string)))))
+
+;; ## <string> -> <string>
+(define (punycode-decode-string string)
+  (with-output-to-string
+    (^()
+      (decode0 (open-input-string string)))))
+
+;; ## () -> <void>
+(define (punycode-encode)
+  (encode0 (current-input-port)))
+
+;; ## () -> <void>
+(define (punycode-decode)
+  (decode0 (current-input-port)))
+
+;; ## IDNA 3.1 Requirements
+;; <string> -> <string>
+(define (idna-encode-string string)
+
+  (define (encode x)
+    (if (#/^[\x00-\x7f]*$/ x)
+      x
+      (with-output-to-string
+        (^ ()
+          (display "xn--")
+          (encode0 (open-input-string x))))))
+
+  (string-join
+   (map encode
+        ;; it MUST contain only ASCII characters
+        (string-split string idna-label-separator))
+   "."))
+
+;; ## IDNA 3.1 Requirements
+;; <string> -> <string>
+(define (idna-decode-string string)
+  (define (decode x)
+    (if-let1 m (#/^xn--/i x)
+      (with-output-to-string
+        (^ ()
+          (decode0 (open-input-string (m 'after)))))
+      x))
+
+  (string-join
+   (map decode
+        (string-split string "."))
+   "."))
