@@ -1,6 +1,8 @@
 Gauche-rfc-punycode
 ===================
 
+[![CI](https://github.com/mhayashi1120/Gauche-rfc-punycode/actions/workflows/build.yml/badge.svg)](https://github.com/mhayashi1120/Gauche-rfc-punycode/actions/workflows/build.yml)
+
 Encode/Decode punycode for Gauche
 
 ## Install
