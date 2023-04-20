@@ -1,7 +1,8 @@
-DIST_EXCLUDE_X
-test.log
-VERSION
-config.log
-config.status
+/Gauche-rfc-punycode.gpd
+/DIST_EXCLUDE_X
+/VERSION
+/test.log
+/config.log
+/config.status
+
 Makefile
-*.gpd

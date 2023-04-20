@@ -4,7 +4,7 @@
 
 (define-gauche-package "Gauche-rfc-punycode"
   ;; 
-  :version "0.9.4"
+  :version "0.9.5"
 
   ;; Description of the package.  The first line is used as a short
   ;; summary.
