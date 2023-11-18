@@ -46,11 +46,13 @@ GAUCHE_PKGARCHDIR = "$(DESTDIR)@GAUCHE_PKGARCHDIR@"
 gauche_rfc_punycode_SRCS =
 gauche_rfc_punycode_HDRS =
 
+TEST_LOG := test.log
+
 all : $(TARGET)
 
 check : all
-	@rm -f test.log
-	$(GOSH) -I. -I$(srcdir) $(srcdir)/test.scm > test.log
+	@rm -f $(TEST_LOG)
+	$(GOSH) -I. -I$(srcdir) $(srcdir)/test.scm > $(TEST_LOG)
 
 install : all
 	$(INSTALL) -m 444 -T $(GAUCHE_PKGINCDIR) $(HEADERS)
@@ -66,13 +68,17 @@ uninstall :
 
 clean :
 	$(GAUCHE_PACKAGE) compile --clean gauche_rfc_punycode $(gauche_rfc_punycode_SRCS)
-	rm -rf core $(TARGET) $(CLEANFILES) *~ test.log so_locations
+	rm -rf core $(TARGET) $(CLEANFILES) *~ $(TEST_LOG) so_locations
 
 distclean : clean
 	rm -rf $(CONFIG_GENERATED)
 
 maintainer-clean : clean
 	rm -rf $(CONFIG_GENERATED)  VERSION
+
+validate :
+	@echo "Testing current setup"
+	$(GOSH) $(srcdir)/test.scm >> $(TEST_LOG)
 
 docker-check :
 	./_docker/run-check.sh
