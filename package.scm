@@ -4,7 +4,7 @@
 
 (define-gauche-package "Gauche-rfc-punycode"
   ;;
-  :version "0.9.8"
+  :version "0.9.9"
 
   ;; Description of the package.  The first line is used as a short
   ;; summary.
@@ -40,8 +40,8 @@
   :licenses ("BSD")
 
   ;; Homepage URL, if any.
-  ; :homepage "http://example.com/Gauche-rfc-punycode/"
+  :homepage "https://github.com/mhayashi1120/Gauche-rfc-punycode"
 
   ;; Repository URL, e.g. github
-  ; :repository "http://example.com/Gauche-rfc-punycode.git"
+  :repository "git@github.com:mhayashi1120/Gauche-rfc-punycode.git"
   )
